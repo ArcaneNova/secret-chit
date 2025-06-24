@@ -93,3 +93,29 @@ For tRPC call issues:
 1. Check that you're providing all required parameters
 2. Inspect network requests for detailed error messages
 3. Ensure your client is correctly set up with the tRPC provider
+
+vercel.json example:
+
+
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup", 
+      "schedule": "0 * * * *" 
+    }
+  ]
+}

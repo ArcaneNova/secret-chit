@@ -21,8 +21,9 @@ function createCustomPrismaAdapter(p: typeof prisma): Adapter {
       console.log('Looking up verification token...', params);
       
       try {
-        
+        // Try multiple approaches to find the token
         console.log('Attempting table lookup with VerificationToken model...');
+          // First, check if the token exists using raw SQL to bypass any schema naming issues
         const rawResults = await p.$queryRaw`
           SELECT "identifier", "token", "expires" 
           FROM "VerificationToken" 
@@ -63,7 +64,7 @@ function createCustomPrismaAdapter(p: typeof prisma): Adapter {
         }
         
         // Try to delete but don't fail if it doesn't work
-        try {          // try raw delete first
+        try {          // Try raw delete first
           await p.$executeRaw`
             DELETE FROM "VerificationToken" 
             WHERE "token" = ${params.token}
@@ -117,8 +118,8 @@ export const authOptions: NextAuthOptions = {
         },
         secure: Number(process.env.EMAIL_SERVER_PORT) === 465,
       } : '',
-      from: process.env.EMAIL_FROM,
-      // 24 hours expiration age
+      from: process.env.EMAIL_FROM || 'noreply@secretchit.local',
+      // Maximum age of 24 hours for sign in tokens
       maxAge: 24 * 60 * 60,
     }),
   ],  callbacks: {
