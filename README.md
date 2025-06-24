@@ -2,32 +2,26 @@
 
 SecretChit is a full-stack web application that allows users to securely share sensitive information via self-destructing, encrypted messages. Built with TypeScript, Next.js, Prisma, tRPC, and Material UI, it provides a secure and seamless way to share sensitive information like passwords, credentials, and private notes.
 
-![SecretChit Screenshot](https://via.placeholder.com/800x400?text=SecretChit+-+Secure+Message+Sharing)
+🔗 **Live Demo**: [https://secret-chit-r55.vercel.app/](https://secret-chit-r55.vercel.app/)
 
-## Table of Contents
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Architecture](#architecture)
-  - [Project Structure](#project-structure)
-  - [Data Flow](#data-flow)
-  - [Authentication Flow](#authentication-flow)
-- [Security Features](#security-features)
-- [Setup & Installation](#setup--installation)
-  - [Prerequisites](#prerequisites)
-  - [Local Development](#local-development)
-  - [Common Development Commands](#common-development-commands)
-- [API Documentation](#api-documentation)
-- [Environment Variables](#environment-variables)
-- [Production Deployment](#production-deployment)
-  - [Vercel Deployment](#vercel-deployment)
-  - [Alternative Deployments](#alternative-deployments)
-- [Authentication](#authentication)
-- [Cron Jobs & Maintenance](#cron-jobs--maintenance)
-- [Troubleshooting](#troubleshooting)
-  - [Common Issues](#common-issues)
-  - [Authentication Issues](#authentication-issues)
-  - [Database Issues](#database-issues)
-- [License](#license)
+Try the demo to:
+- Create a one-time secret that self-destructs after viewing
+- Set expiration times for your sensitive information
+- Add password protection for extra security
+- View your created secrets in the dashboard (requires login)
+
+## Screenshots
+
+### Home Page - Create a Secret
+![Home Page](./create-msg-screenshot.png)
+
+### User Dashboard - Manage Your Secrets
+![Dashboard](./dashboard-screenshot.png)
+
+### View Secret Page
+![View Secret](./secret-message-screenshot.png)
+
+*Note: The screenshots show the application's main features: creating a secret with security options, managing secrets in the user dashboard, and viewing a retrieved secret.*
 
 ## Features
 
@@ -64,8 +58,7 @@ SecretChit is a full-stack web application that allows users to securely share s
 
 - **DevOps**:
   - [Vercel](https://vercel.com/) for hosting and deployment
-  - [Railway](https://railway.app/) for PostgreSQL database
-  - [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) for scheduled tasks
+  - [cron-job.org] for cron job setup
 
 ## Architecture
 
@@ -209,25 +202,10 @@ npx prisma db push
 # View database with Prisma Studio
 npx prisma studio
 
-# Run linting
-npm run lint
-
-# Type checking
-npm run type-check
-
-# Build for production
-npm run build
-
-# Run production server
-npm start
-
-# Run tests (if configured)
-npm test
-```
 
 ## API Documentation
 
-SecretChit uses tRPC for type-safe API endpoints. See [API.md](./API.md) for detailed API documentation.
+SecretChit uses tRPC for type-safe API endpoints.
 
 Key API endpoints include:
 
@@ -260,14 +238,26 @@ All API endpoints have built-in error handling and type safety.
 
 ## Production Deployment
 
+### Live Demo
+
+The project is currently deployed and available at:
+- 🌐 [https://secret-chit-r55.vercel.app/](https://secret-chit-r55.vercel.app/)
+
+Features available in the demo:
+- Create and view one-time secrets
+- User authentication (GitHub, Google, email)
+- Dashboard for secret management
+- Automatic deletion of expired secrets
+
 ### Vercel Deployment
 
 1. Push your code to a GitHub repository
 2. Import the project in Vercel
 3. Configure the environment variables in Vercel's settings
-4. Set up the Vercel Cron job for secret cleanup:
-   - The cron configuration is in `vercel.json`
+4. Set up an external cron job service for secret cleanup:
+   - Follow the instructions in [CRON_SETUP_GUIDE.md](./CRON_SETUP_GUIDE.md)
    - Ensure the `CRON_SECRET` environment variable is set
+   - For Vercel Pro plans, you can use Vercel's built-in cron jobs feature instead
 
 ### Alternative Deployments
 
@@ -312,9 +302,30 @@ SecretChit includes an automatic cleanup job that removes expired secrets:
 - **Implementation**: `src/server/jobs/cleanupExpiredSecrets.ts`
 - **API Endpoint**: `/api/cron/cleanup`
 - **Authentication**: Protected by `CRON_SECRET` environment variable
-- **Schedule**: Hourly (configurable in `vercel.json`)
+- **Schedule**: Hourly
 
-For details on how the cron job works and alternative setup options, see [TRPC_AND_CRON_GUIDE.md](./TRPC_AND_CRON_GUIDE.md).
+### External Cron Job Setup
+
+Since Vercel's Hobby plan doesn't include built-in cron jobs, we use an external service:
+
+![Test cron job api](./test-cron-job-api.png)
+
+1. **Using cron-job.org**
+
+   ![Cron-job.org Setup](./cron-job-set.png)
+
+2. **Configuration**:
+   - Set the URL to: `https://secret-chit-r55.vercel.app/api/cron/cleanup`
+   - Add an authorization header: `Authorization: Bearer ${CRON_SECRET}`
+   - Schedule to run hourly
+
+3. **Testing the Endpoint**:
+   - You can test the endpoint manually using tools like ReqBin or Postman
+   - Ensure you include the proper Authorization header with your CRON_SECRET
+   
+   ![Testing with ReqBin](./test-cron-job-api.png)
+
+For more details on the cron job implementation and tRPC setup, see [TRPC_AND_CRON_GUIDE.md](./TRPC_AND_CRON_GUIDE.md).
 
 ## Troubleshooting
 
@@ -332,12 +343,7 @@ For details on how the cron job works and alternative setup options, see [TRPC_A
 
 ### Authentication Issues
 
-1. **Email Authentication**:
-   - Verify SMTP server settings
-   - Check for verification token errors in logs
-   - Try the `/auth/debug` page to diagnose issues
-
-2. **OAuth Issues**:
+1. **OAuth Issues**:
    - Ensure redirect URIs are correctly set in provider dashboards
    - Check client IDs and secrets are correct
    - Verify callback URLs match the configured provider settings
@@ -353,11 +359,6 @@ For details on how the cron job works and alternative setup options, see [TRPC_A
    - Run `npx prisma db push` to sync schema changes
    - Use `npx prisma studio` to inspect database state
    - Check Prisma logs for any migration errors
-
-3. **Verification Token Issues**:
-   - The custom adapter implementation handles PostgreSQL verification token table issues
-   - Use the debug endpoints (`/api/debug/token`) to check token state
-   - If persistent issues occur, manually clean the VerificationToken table and retry
 
 ### API and tRPC Issues
 
@@ -375,37 +376,3 @@ For details on how the cron job works and alternative setup options, see [TRPC_A
    - One-time secrets cannot be viewed multiple times
    - Password-protected secrets require correct password input
    - Expired secrets cannot be accessed
-
-For more detailed API troubleshooting, see [TRPC_AND_CRON_GUIDE.md](./TRPC_AND_CRON_GUIDE.md).
-
-## Best Practices
-
-1. **Security Considerations**:
-   - Regularly rotate the `ENCRYPTION_KEY` and migrate encrypted data
-   - Keep authentication provider credentials secure
-   - Set appropriate expiration times for secrets containing sensitive data
-   - Use the latest Node.js LTS version
-
-2. **Performance Optimization**:
-   - Enable caching for non-sensitive data
-   - Use appropriate indices in the database
-   - Consider database connection pooling for high traffic
-
-3. **Monitoring and Maintenance**:
-   - Implement logging for critical operations
-   - Monitor cron job execution
-   - Regularly backup database data
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT
