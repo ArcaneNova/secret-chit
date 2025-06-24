@@ -1,36 +1,411 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SecretChit - Secure Secret Sharing Web Application
 
-## Getting Started
+SecretChit is a full-stack web application that allows users to securely share sensitive information via self-destructing, encrypted messages. Built with TypeScript, Next.js, Prisma, tRPC, and Material UI, it provides a secure and seamless way to share sensitive information like passwords, credentials, and private notes.
 
-First, run the development server:
+![SecretChit Screenshot](https://via.placeholder.com/800x400?text=SecretChit+-+Secure+Message+Sharing)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Table of Contents
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+  - [Project Structure](#project-structure)
+  - [Data Flow](#data-flow)
+  - [Authentication Flow](#authentication-flow)
+- [Security Features](#security-features)
+- [Setup & Installation](#setup--installation)
+  - [Prerequisites](#prerequisites)
+  - [Local Development](#local-development)
+  - [Common Development Commands](#common-development-commands)
+- [API Documentation](#api-documentation)
+- [Environment Variables](#environment-variables)
+- [Production Deployment](#production-deployment)
+  - [Vercel Deployment](#vercel-deployment)
+  - [Alternative Deployments](#alternative-deployments)
+- [Authentication](#authentication)
+- [Cron Jobs & Maintenance](#cron-jobs--maintenance)
+- [Troubleshooting](#troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Authentication Issues](#authentication-issues)
+  - [Database Issues](#database-issues)
+- [License](#license)
+
+## Features
+
+- **End-to-End Encryption**: All secrets are encrypted before being stored in the database
+- **One-Time Access**: Secrets can be configured to self-destruct after being viewed once
+- **Auto-Expiration**: Set an expiration time for secrets (1 hour to 30 days)
+- **Password Protection**: Add an optional password for an additional layer of security
+- **User Authentication**: Create an account to keep track of your secrets
+- **User Dashboard**: Authenticated users can view, manage, and search their secrets
+- **Fully Responsive**: Works seamlessly on desktop, tablet, and mobile devices
+- **Dark Mode**: Modern dark theme UI using Material UI
+- **Automatic Cleanup**: Cron job automatically removes expired secrets from the database
+
+## Technology Stack
+
+- **Frontend**:
+  - [Next.js 15](https://nextjs.org/) with App Router architecture
+  - [TypeScript](https://www.typescriptlang.org/) for type safety
+  - [Material UI 7](https://mui.com/) for component library and theming
+  - [React Query](https://tanstack.com/query) for data fetching and state management
+  
+- **Backend**:
+  - [tRPC 11](https://trpc.io/) for type-safe API endpoints
+  - [Prisma 6](https://www.prisma.io/) as the ORM for database operations
+  - [NextAuth.js 4](https://next-auth.js.org/) for authentication
+  - [PostgreSQL](https://www.postgresql.org/) for database
+  
+- **Security**:
+  - [crypto-js](https://github.com/brix/crypto-js) for encryption
+  - [bcrypt](https://github.com/kelektiv/node.bcrypt.js) for password hashing
+  - [uuid](https://github.com/uuidjs/uuid) for secure ID generation
+  - Rate limiting, CSRF protection
+  - JWT for token-based authentication
+
+- **DevOps**:
+  - [Vercel](https://vercel.com/) for hosting and deployment
+  - [Railway](https://railway.app/) for PostgreSQL database
+  - [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) for scheduled tasks
+
+## Architecture
+
+SecretChit follows a modern full-stack architecture with clear separation of concerns:
+
+### Project Structure
+
+```
+/src
+  /app                   # Next.js App Router
+    /api                 # API routes
+      /auth              # NextAuth routes
+      /trpc              # tRPC API
+      /cron              # Cron job endpoints
+    /s/[id]              # Secret viewer page
+    /dashboard           # User dashboard
+    /auth                # Auth pages
+  /components            # React components
+  /server
+    /auth                # Auth configuration
+    /db                  # Database client
+    /trpc                # tRPC routers
+      /routers           # API endpoints
+    /jobs                # Cron jobs
+    /utils               # Server utilities
+  /utils                 # Shared utilities
+/prisma                  # Prisma schema & migrations
+/public                  # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Data Flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+┌─────────────────────┐     ┌──────────────────┐     ┌────────────────┐
+│  React Components   │────▶│  tRPC API Layer  │────▶│  Database      │
+│  (Client & Server)  │◀────│  (Type-safe)     │◀────│  (PostgreSQL)  │
+└─────────────────────┘     └──────────────────┘     └────────────────┘
+          │                         │                        │
+          ▼                         ▼                        ▼
+┌─────────────────────┐     ┌──────────────────┐     ┌────────────────┐
+│  NextAuth.js        │     │  Prisma ORM      │     │  Cron Jobs     │
+│  Authentication     │     │  Data Access     │     │  Maintenance   │
+└─────────────────────┘     └──────────────────┘     └────────────────┘
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Component Structure**: Uses React components with Next.js Server and Client Components
+- **API Layer**: tRPC provides end-to-end type safety for all API endpoints
+- **Authentication**: NextAuth.js handles user sessions and multiple authentication providers
+- **Data Access**: Prisma provides a type-safe ORM layer for database operations
+- **Routing**: Next.js App Router for file-system based routing
 
-## Learn More
+### Authentication Flow
 
-To learn more about Next.js, take a look at the following resources:
+1. User authenticates via Email, Google, or GitHub provider
+2. NextAuth.js creates or retrieves user record
+3. JWT session token is issued to the client
+4. Authenticated requests include JWT in cookies
+5. tRPC context includes user session information
+6. Protected routes & API endpoints verify session validity
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **End-to-end Encryption**:
+   - All secrets are encrypted using AES-256-GCM before being stored
+   - Encryption key is never exposed to the client
+   - Initialization vectors (IV) are unique for each secret
+   - Only encrypted data is stored in the database
 
-## Deploy on Vercel
+2. **Password Protection**:
+   - Optional password for secrets provides an additional security layer
+   - Passwords are hashed using bcrypt with appropriate salt rounds
+   - Password verification happens server-side only
+   - Brute force protection through rate limiting
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Self-Destruction Mechanisms**:
+   - One-time view feature ensures secrets can only be accessed once
+   - Auto-expiry ensures no secret lives forever in the database
+   - Background cron jobs clean up expired secrets
+   - Viewed status is tracked to prevent re-access
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Secure Authentication**:
+   - Multiple authentication providers (Email, Google, GitHub)
+   - JWT with appropriate expiration and rotation
+   - CSRF protection for all authentication endpoints
+   - Custom adapter for verification token handling
+
+5. **Rate Limiting and Protection**:
+   - API rate limiting to prevent abuse
+   - CORS configuration for API security
+   - HTTP security headers
+   - Input validation and sanitization
+
+## Setup & Installation
+
+### Prerequisites
+
+- Node.js 18.17.0+ and npm
+- PostgreSQL database
+- SMTP server (for email authentication)
+- OAuth credentials (for Google/GitHub authentication)
+
+### Local Development
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/secretchit.git
+   cd secretchit
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables
+   - Copy `.env.example` to `.env`
+   - Update the variables with your database and authentication settings
+
+4. Initialize the database
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+5. Start the development server
+   ```bash
+   npm run dev
+   ```
+
+6. Visit `http://localhost:3000` to see the application
+
+### Common Development Commands
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push schema changes to database
+npx prisma db push
+
+# View database with Prisma Studio
+npx prisma studio
+
+# Run linting
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Build for production
+npm run build
+
+# Run production server
+npm start
+
+# Run tests (if configured)
+npm test
+```
+
+## API Documentation
+
+SecretChit uses tRPC for type-safe API endpoints. See [API.md](./API.md) for detailed API documentation.
+
+Key API endpoints include:
+
+- `secret.create` - Create a new secret
+- `secret.getById` - Retrieve a secret by ID
+- `secret.getMySecrets` - List authenticated user's secrets
+- `secret.delete` - Delete a secret
+
+All API endpoints have built-in error handling and type safety.
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `NEXTAUTH_SECRET` | Secret used to encrypt sessions | Yes |
+| `NEXTAUTH_URL` | URL of your application | Yes |
+| `ENCRYPTION_KEY` | Key used to encrypt secrets (32 chars) | Yes |
+| `CRON_SECRET` | Secret for cron job authentication | Yes |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | For Google auth |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | For Google auth |
+| `GITHUB_ID` | GitHub OAuth app ID | For GitHub auth |
+| `GITHUB_SECRET` | GitHub OAuth app secret | For GitHub auth |
+| `EMAIL_SERVER_HOST` | SMTP server host | For Email auth |
+| `EMAIL_SERVER_PORT` | SMTP server port | For Email auth |
+| `EMAIL_SERVER_USER` | SMTP server username | For Email auth |
+| `EMAIL_SERVER_PASSWORD` | SMTP server password | For Email auth |
+| `EMAIL_FROM` | Sender email address | For Email auth |
+| `NODE_ENV` | Environment (development/production) | Recommended |
+
+## Production Deployment
+
+### Vercel Deployment
+
+1. Push your code to a GitHub repository
+2. Import the project in Vercel
+3. Configure the environment variables in Vercel's settings
+4. Set up the Vercel Cron job for secret cleanup:
+   - The cron configuration is in `vercel.json`
+   - Ensure the `CRON_SECRET` environment variable is set
+
+### Alternative Deployments
+
+1. **Railway**:
+   - Set up a PostgreSQL database instance
+   - Deploy using Railway's GitHub integration
+   - Configure environment variables
+   - Set up a separate cron service to hit the cleanup endpoint
+
+2. **Self-hosted**:
+   - Set up a PostgreSQL database
+   - Build the application with `npm run build`
+   - Start with `npm start`
+   - Set up a cron job to call the cleanup endpoint regularly
+
+## Authentication
+
+SecretChit uses NextAuth.js for authentication with the following providers:
+
+1. **Email Authentication**
+   - Users can sign in with email (magic link)
+   - Requires valid SMTP settings
+   - Custom verification token handling for reliability
+
+2. **Google OAuth**
+   - One-click sign in with Google accounts
+   - Requires valid Google OAuth credentials
+
+3. **GitHub OAuth**
+   - One-click sign in with GitHub accounts
+   - Requires valid GitHub OAuth credentials
+
+Custom pages are implemented for:
+- Sign In (`/auth/signin`)
+- Email Verification (`/auth/verify-request`)
+- Authentication Error (`/auth/error`)
+
+## Cron Jobs & Maintenance
+
+SecretChit includes an automatic cleanup job that removes expired secrets:
+
+- **Implementation**: `src/server/jobs/cleanupExpiredSecrets.ts`
+- **API Endpoint**: `/api/cron/cleanup`
+- **Authentication**: Protected by `CRON_SECRET` environment variable
+- **Schedule**: Hourly (configurable in `vercel.json`)
+
+For details on how the cron job works and alternative setup options, see [TRPC_AND_CRON_GUIDE.md](./TRPC_AND_CRON_GUIDE.md).
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Build Errors**:
+   - Check Node.js version compatibility (18.17.0+ required)
+   - Ensure all dependencies are installed (`npm install`)
+   - Verify environment variables are properly set
+
+2. **Runtime Errors**:
+   - Check console logs for JavaScript errors
+   - Verify database connection string is correct
+   - Ensure NextAuth.js is properly configured
+
+### Authentication Issues
+
+1. **Email Authentication**:
+   - Verify SMTP server settings
+   - Check for verification token errors in logs
+   - Try the `/auth/debug` page to diagnose issues
+
+2. **OAuth Issues**:
+   - Ensure redirect URIs are correctly set in provider dashboards
+   - Check client IDs and secrets are correct
+   - Verify callback URLs match the configured provider settings
+
+### Database Issues
+
+1. **Connection Errors**:
+   - Verify DATABASE_URL is correct and accessible
+   - Check PostgreSQL server is running and accepts connections
+   - Ensure database exists and user has appropriate permissions
+
+2. **Schema Issues**:
+   - Run `npx prisma db push` to sync schema changes
+   - Use `npx prisma studio` to inspect database state
+   - Check Prisma logs for any migration errors
+
+3. **Verification Token Issues**:
+   - The custom adapter implementation handles PostgreSQL verification token table issues
+   - Use the debug endpoints (`/api/debug/token`) to check token state
+   - If persistent issues occur, manually clean the VerificationToken table and retry
+
+### API and tRPC Issues
+
+1. **Type Errors**:
+   - Ensure all API calls include required parameters
+   - Remember that every `secret.getById` call needs an ID parameter
+   - Handle potential null returns properly
+
+2. **Permission Errors**:
+   - Verify user is authenticated for protected routes
+   - Check that users only access their own secrets
+   - Rate limiting may cause 429 errors if too many requests are made
+
+3. **Secret Viewing Issues**:
+   - One-time secrets cannot be viewed multiple times
+   - Password-protected secrets require correct password input
+   - Expired secrets cannot be accessed
+
+For more detailed API troubleshooting, see [TRPC_AND_CRON_GUIDE.md](./TRPC_AND_CRON_GUIDE.md).
+
+## Best Practices
+
+1. **Security Considerations**:
+   - Regularly rotate the `ENCRYPTION_KEY` and migrate encrypted data
+   - Keep authentication provider credentials secure
+   - Set appropriate expiration times for secrets containing sensitive data
+   - Use the latest Node.js LTS version
+
+2. **Performance Optimization**:
+   - Enable caching for non-sensitive data
+   - Use appropriate indices in the database
+   - Consider database connection pooling for high traffic
+
+3. **Monitoring and Maintenance**:
+   - Implement logging for critical operations
+   - Monitor cron job execution
+   - Regularly backup database data
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+MIT
