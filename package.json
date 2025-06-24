@@ -9,8 +9,7 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate"
-  },
-  "dependencies": {
+  },  "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.2",
@@ -22,6 +21,7 @@
     "@trpc/next": "^11.4.2",
     "@trpc/react-query": "^11.4.2",
     "@trpc/server": "^11.4.2",
+    "@types/node": "^20",
     "bcrypt": "^6.0.0",
     "crypto-js": "^4.2.0",
     "next": "15.3.4",
@@ -32,11 +32,9 @@
     "superjson": "^2.2.2",
     "uuid": "^11.1.0",
     "zod": "^3.25.67"
-  },
-  "devDependencies": {
+  },  "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
