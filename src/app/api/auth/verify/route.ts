@@ -1,6 +1,4 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/server/auth/auth-options';
 import { prisma } from '@/server/db';
 
 export async function GET(request: Request) {

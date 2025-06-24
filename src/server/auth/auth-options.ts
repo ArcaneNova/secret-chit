@@ -123,7 +123,7 @@ export const authOptions: NextAuthOptions = {
       maxAge: 24 * 60 * 60,
     }),
   ],  callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account, email }) {
       // Log sign-in attempts to help with debugging
       console.log('[NextAuth] Sign-in attempt:', { 
         user: user?.email,
