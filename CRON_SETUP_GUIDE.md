@@ -26,7 +26,7 @@ Since Vercel's Hobby plan doesn't include built-in cron jobs, we can use an exte
   - **Header Name**: Authorization  
   - **Header Value**: Bearer secret_76d5bf32c9e84a7790a54b12095dd8ef
   
-  ![Cron-job.org Header Setup](./public/screenshots/cron-job-header.jpg)
+  ![Cron-job.org Header Setup](./cron-job-set.png)
 
 - **User Agent**: cron-job.org
 
@@ -56,7 +56,7 @@ Since Vercel's Hobby plan doesn't include built-in cron jobs, we can use an exte
 - Verify that the CRON_SECRET environment variable in Vercel matches the token in your Authorization header
 - Test the endpoint manually using a tool like ReqBin or Postman with proper headers:
 
-![Testing with ReqBin](./public/screenshots/reqbin-test.jpg)
+![Testing with ReqBin](./test-cron-job-api.png)
 
 #### 500 Server Error
 - Check your Vercel deployment logs for details
@@ -65,10 +65,3 @@ Since Vercel's Hobby plan doesn't include built-in cron jobs, we can use an exte
 #### Job Not Running
 - Verify the cron job is enabled in cron-job.org
 - Check the execution history for any error details
-
-## Alternative Services
-
-If cron-job.org doesn't meet your needs, here are some alternatives:
-- [EasyCron](https://www.easycron.com/)
-- [SetCronJob](https://www.setcronjob.com/)
-- [Cronitor](https://cronitor.io/)
